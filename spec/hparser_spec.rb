@@ -3,6 +3,10 @@ require 'open-uri'
 require 'json'
 require 'yaml'
 require 'pry'
+require 'webmock/rspec'
+
+# Disalowing the "real" web access
+WebMock.disable_net_connect!(allow_localhost: true)
 
 WORDS_FILE = File.expand_path('../words.yml', __FILE__)
 
@@ -53,14 +57,18 @@ class HParser
 end
 
 describe HParser do    
-
   describe "when parsing the url" do
+    before(:each) do
+      stub_request(:get, "https://meetyl.com/").
+         with(headers: {'Accept'=>'*/*', 'Accept-Encoding'=>'gzip;q=1.0,deflate;q=0.6,identity;q=0.3', 'User-Agent'=>'Ruby'}).
+         to_return(status: 200, body: "<title>Meetyl</title>", headers: {})
+    end
+    
     it "should read a parser" do
       hcontent = HParser.new.get_header_content
       expect(hcontent).to eq("")
     end
 
-    # Functional??? TODO: Mock the web access -- Webmock
     it "should read a parser" do
       hcontent = HParser.new.get_header_content 'https://meetyl.com/'
       expect(hcontent.to_json).to be == "{\"title\":\"Meetyl\"}"

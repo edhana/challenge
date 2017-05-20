@@ -7,6 +7,10 @@ How to run
 - execute tests with `rspec spec/hparser_spec`
 - run application with `ruby main.rb`
 
+What is being saved
+===
+
+On your local folder an yml file is saved with the word count requested by the challenge spec.
 
 
 
