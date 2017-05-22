@@ -8,7 +8,7 @@ if __FILE__ == $0
   else
     puts "Retrieving header data from #{ARGV[0]} ..."
     hparser = HParser.new
-    hparser.get_header_content ARGV[0]
+    puts "Header data from url(#{ARGV[0]}): #{hparser.get_header_content ARGV[0]}"
     puts "Data saved on file #{HParser::WORDS_FILE}"
   end
 end
