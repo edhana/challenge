@@ -10,59 +10,60 @@ require_relative '../hparser.rb'
 # Disalowing the "real" web access
 WebMock.disable_net_connect!(allow_localhost: true)
 
-describe HParser do    
-  describe "when parsing the url" do
-    before(:each) do
-      @header_stub = {"content-length"=>"228148",
-          "content-type"=>"text/html; charset=utf-8",
-          "x-frame-options"=>"SAMEORIGIN",
-          "x-request-guid"=>"c9484d02-fe11-4802-a56e-da0cef2ea119",
-          "accept-ranges"=>"bytes",
-          "date"=>"Sun, 21 May 2017 21:28:22 GMT"}
+describe HParser do   
+  before(:each) do
+    @header_stub = {"content-length"=>"228148",
+      "content-type"=>"text/html; charset=utf-8",
+      "x-frame-options"=>"SAMEORIGIN",
+      "x-request-guid"=>"c9484d02-fe11-4802-a56e-da0cef2ea119",
+      "accept-ranges"=>"bytes",
+      "date"=>"Sun, 21 May 2017 21:28:22 GMT"}
 
-      stub_request(:head, "http://meetyl.com/").
-         with(headers: {'Accept'=>'*/*', 'User-Agent'=>'Ruby'}).
-         to_return(status: 200, body: "", headers: @header_stub)
- 
-      strbody =<<-STR 
-      <head>
-        <title>test title</title>
-        <h1>another test title</h1>
-      </head>
-      STR
-      
-      stub_request(:head, "http://gmail.com/").
-         with(headers: {'Accept'=>'*/*', 'User-Agent'=>'Ruby'}).
-         to_return(status: 200, body: "", headers: @header_stub)      
-    end
-    
+    stub_request(:head, "http://meetyl.com/").
+    with(headers: {'Accept'=>'*/*', 'User-Agent'=>'Ruby'}).
+    to_return(status: 200, body: "", headers: @header_stub)
+
+    strbody =<<-STR 
+    <head>
+    <title>test title</title>
+    <h1>another test title</h1>
+    </head>
+    STR
+
+    stub_request(:head, "http://gmail.com/").
+    with(headers: {'Accept'=>'*/*', 'User-Agent'=>'Ruby'}).
+    to_return(status: 200, body: "", headers: @header_stub)      
+
+    @hparser = HParser.new
+  end
+  
+  after(:each) do
+    # clean all yml files from the repo when testing
+    Dir.glob(File.expand_path('spec/*.yml')).each {|f| File.delete f}
+    Dir.glob(File.expand_path('./*.yml')).each {|f| File.delete f}
+  end      
+
+  describe "when parsing the url" do    
     it "should not read any content from an empty url" do
-      hcontent = HParser.new.get_header_content
+      hcontent = @hparser.get_header_content
       expect(hcontent).to eq("")
     end
 
     it "should read a head section with a title" do
-      hcontent = HParser.new.get_header_content 'https://meetyl.com'
+      hcontent = @hparser.get_header_content 'https://meetyl.com'
       expect(hcontent.to_json).to be == @header_stub.to_json
     end
 
   end
 
   describe "when no URL is informed" do
-    it "should return an error message when word db exists"
-    it "should print the word count"      
+    it "should get the word count json" do
+      @hparser.get_header_content 'https://meetyl.com'    
+      expect(@hparser.get_word_count).to be == "{\"content-length\":1,\"228148\":1,\"content-type\":1,\"text\":1,\"html\":1,\"charset\":1,\"utf\":1,\"8\":1,\"x-frame-options\":1,\"SAMEORIGIN\":1,\"x-request-guid\":1,\"c9484d02\":1,\"fe11\":1,\"4802\":1,\"a56e\":1,\"da0cef2ea119\":1,\"accept-ranges\":1,\"bytes\":1,\"date\":1,\"Sun\":1,\"21\":2,\"May\":1,\"2017\":1,\"28\":1,\"22\":1,\"GMT\":1}"
+    end       
   end    
 
   describe "when counting words" do
-    before(:each) do
-      @hparser = HParser.new
-    end
-
-    after(:each) do
-      # clean all yml files from the repo
-      Dir.glob(File.expand_path('spec/*.yml')).each {|f| File.delete f}
-    end      
-
     let(:input_hash){
       {"content-length"=>"228148",
        "content-type"=>"text/html;"

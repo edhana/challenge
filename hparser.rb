@@ -46,4 +46,9 @@ class HParser
       return {}
     end    
   end  
+
+  def get_word_count
+    res = load_from_yaml WORDS_FILE
+    res.to_json
+  end  
 end
